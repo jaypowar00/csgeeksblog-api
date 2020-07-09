@@ -31,9 +31,15 @@ class Users(db.Model):
 def home():
     username = 'Jaypowar'
     email = 'jay@example.com'
+    '''
+    #for adding values in rows
+    '''
     data = Users(username,email)
     db.session.add(data)
-    # Users.query.filter_by(username=username,email=email).delete()
+    '''
+    #for removing rows by filtering them woth
+    # Users.query.filter_by(username=username,email=email).first().delete()
+    '''
     db.session.commit()
     return '1'
 
