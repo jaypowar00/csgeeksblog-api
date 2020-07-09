@@ -28,20 +28,21 @@ class Users(db.Model):
         self.email = email
 
 @app.route('/')
-def home():
+def add():
     username = 'Jaypowar'
     email = 'jay@example.com'
-    '''
-    #for adding values in rows
-    '''
     data = Users(username,email)
     db.session.add(data)
-    '''
-    #for removing rows by filtering them woth
-    # Users.query.filter_by(username=username,email=email).first().delete()
-    '''
     db.session.commit()
-    return '1'
+    return 'added'
+
+@app.route('/del')
+def delt():
+    username = 'Jaypowar'
+    email = 'jay@example.com'
+    Users.query.filter_by(username=username,email=email).delete()
+    db.session.commit()
+    return 'deleted'
 
 if __name__ == "__main__":
     db.create_all()
