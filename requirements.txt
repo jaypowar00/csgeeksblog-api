@@ -1,4 +1,0 @@
-
-postgresql
-flask
-psycopg2
