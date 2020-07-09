@@ -36,13 +36,13 @@ def add():
     db.session.commit()
     return 'added'
 
-@app.route('/del')
+@app.route('/delete')
 def delt():
     username = 'Jaypowar'
     email = 'jay@example.com'
     Users.query.filter_by(username=username,email=email).delete()
     db.session.commit()
-    return 'deleted'
+    return 'deleted everything'
 
 if __name__ == "__main__":
     db.create_all()
