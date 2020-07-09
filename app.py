@@ -19,58 +19,13 @@ db = SQLAlchemy(app)
 
 class Users(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer,primary_key=True)
+    user_id = db.Column(db.Integer,primary_key=True)
     username = db.Column(db.String(50))
     email = db.Column(db.String(50))
 
     def __init__(self,username,email):
         self.username = username
         self.email = email
-    # @property
-    # def serialize(self):
-    #     '''return object in serialized format'''
-    #     return {
-    #         'id':self.id,
-    #         'username':self.username,
-    #         'email':self.email
-    #     }
-    # @property
-    # def serialize_many2many(self):
-    #     return [item.serialize for item in self.many2many]
-
-
-# DB_NAME = "d3aqjq8nk8in3e"
-# DB_USER = "rlujrnnlqazipq"
-# DB_PASS = "951370f7ecd7b589a9e00df2987b3c421c3d9476d872079f93d8085f4394510c"
-# DB_HOST = "ec2-52-70-15-120.compute-1.amazonaws.com"
-# DB_PORT = "5432"
-
-# def show_database():
-#     try:
-#         conn = psycopg2.connect(database = DB_NAME, user = DB_USER , password = DB_PASS, host =DB_HOST ,port = DB_PORT)
-#         cur = conn.cursor()
-
-#         cur.execute("SELECT json_agg(users) FROM users")
-#         cur.execute("SELECT to_jsonb(array_agg(users)) FROM users")
-
-#         result = cur.fetchall()[0][0]
-#         cur.close()
-#         conn.close()
-#         return result
-
-#     except:
-#         if conn.close == 0:
-#             cur.close()
-#             conn.close()
-#         return False
-
-# @app.route('/')
-# def show():
-    # result = show_database()
-    # if (result != False):
-    #     return jsonify(result),200
-    # else:
-    #     return "database couldn't be read at this time..."
 
 @app.route('/')
 def home():
@@ -83,4 +38,5 @@ def home():
     return '1'
 
 if __name__ == "__main__":
+    db.create_all()
     app.run()
