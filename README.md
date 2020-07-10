@@ -5,7 +5,7 @@
 The app.py is like a skeleton!
 
 don't except 100% output without modiying it...
-## 1)
+## 1) /blog/posts
 This gets all the data from given table of from the database and return it in json format (array of objects)
 
 
@@ -25,7 +25,7 @@ e.g.
   ]
 }
 ```
-## 2)
+## 2) /blog/login
 Got login route which will check the user info received from a form submit and will chec with the database (users table), if found then will return true, if not then false...
 
 
