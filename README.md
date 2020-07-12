@@ -9,7 +9,6 @@ don't except 100% output without modiying it...
 ## 1) /blog/posts
 This gets all the data from given table of from the database and return it in json format (array of objects)
 
-
 e.g.
 
 ```
@@ -26,12 +25,14 @@ e.g.
   ]
 }
 ```
-## 2) /blog/login
-Got login route which will check the user info received from a form submit and will chec with the database (users table), if found then will return true, if not then false...
-
+## 2) /blog/admin
+for admin previleges, must login for performing some adding or deleting posts operations !
 
 ## 3) /blog/post
 Will insert the Title, Content, Author data into posts Table!
+
+## 4) /blog/post/id=?
+This route will fetch data for single post of mentioned _id from the database...(only int values accepted at '?')
 
 # Web App Under Development!
 This is still under developement ...
