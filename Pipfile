@@ -15,6 +15,9 @@ requests = "*"
 request = "*"
 jsonify = "*"
 postgres = "*"
+make-response = "*"
+flask-login = "*"
+datetime = "*"
 
 [requires]
 python_version = "3.8"
