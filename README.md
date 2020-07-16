@@ -34,5 +34,8 @@ Will insert the Title, Content, Author data into posts Table!
 ## 4) /blog/post/id=?
 This route will fetch data for single post of mentioned _id from the database...(only int values accepted at '?')
 
+## 5) Login through C_AUTH header request
+Added feature for logging in via header request (C_AUTH) with particular key value !
+
 # Web App Under Development!
 This is still under developement ...
