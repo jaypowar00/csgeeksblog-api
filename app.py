@@ -159,6 +159,7 @@ def login_through_header():
 
 @app.route('/')
 @app.route('/blog')
+@app.route('/blog/')
 def blog_page():
     '''tempo blog page route'''
     admin = '(admin-login not found)'
@@ -167,11 +168,10 @@ def blog_page():
     return f"<div style='text-align:center;font-size:calc(100px - 6vw);'><h1>this is blog page</h1><br>{admin}<br><h3><br><br>see posts: <a href='/blog/posts'>/blog/posts</a><br>create a post: <a href='/blog/post'>/blog/post</a><br>admin login: <a href='/blog/admin'>/blog/admin</a></h3><div>"
 
 @app.route('/blog/posts', methods=["GET"])
+@app.route('/blog/posts/', methods=["GET"])
 def return_blog_posts():
     '''displaying all posts data from posts table'''
     result = get_blog_posts()
-    print('*************\nresult:')
-    print(type(result))
     try:
         if result[0] == 500:
             if result[1]['Server Error'] == "Database Error":
@@ -190,6 +190,7 @@ def return_blog_posts():
         return resp
 
 @app.route('/blog/posts/id=<int:id>')
+@app.route('/blog/posts/id=<int:id>/')
 def get_post_by_id(id):
     result=fetch_post_by_id(id)
     try:
@@ -205,6 +206,7 @@ def get_post_by_id(id):
         return resp
 
 @app.route('/blog/post', methods=['POST'])
+@app.route('/blog/post/', methods=['POST'])
 def upload_post():
     '''inserting data received from request form into posts table in db'''
     if current_user.is_authenticated:
@@ -214,38 +216,40 @@ def upload_post():
             author = request.form['author']
             r = insert_post_to_database(title, content, author)
             if r:
-                resp = make_response({'result':'post uploaded'})
+                resp = make_response({'Response':'post uploaded'})
                 resp.mimetype = 'application/json'
                 return resp
             else:
-                resp = make_response({'result':'failed to upload post'})
+                resp = make_response({'Response':'failed to upload post'})
                 resp.mimetype = 'application/json'
                 resp.status_code = 507
                 return resp
         else:
-            resp = make_response({'result':'required request not satisfied by form data'})
+            resp = make_response({'Response':'required request not satisfied by form data'})
             resp.mimetype = 'application/json'
             resp.status_code = 507
             return resp
     else:
-        return make_response({'response':'unathorized access'})
+        return make_response({'Response':'unathorized access'})
 
 @app.route('/blog/post', methods=["GET"])
+@app.route('/blog/post/', methods=["GET"])
 def upload_post_page():
     '''tempo route for uploading a new data post into db'''
     if current_user.is_authenticated:
         return '<br><br><br><br><br><hr><form style="text-align: center;line-height: 1.5;" action="/blog/post" method="POST"><p style="font-size:calc(130px - 8vw);">Create A Post</p><input style="font-size:calc(130px - 8vw);" type="text" name="title" placeholder="Enter Title" required /><br><input style="font-size:calc(130px - 8vw);" type="text" name="content" placeholder="Enter Content" required /><br><input type="text" name="author" placeholder="Enter Author" style="font-size:calc(130px - 8vw);" required><br><br><input style="font-size:calc(130px - 8vw);" type="submit" value="Post"></form><hr><form style="text-align: center;line-height: 1.5;" action="/blog/post/delete" method="POST"><input style="font-size:calc(130px - 8vw);" type="submit" value="Delete all posts"></form><hr>'
     else:
-        return make_response({'response':'unathorized access'})
+        return make_response({'Response':'unathorized access'})
 
 @app.route('/blog/post/delete', methods=["GET","POST"])
 def delete_all_posts():
     if current_user.is_authenticated:
         return delete_all()
     else:
-        return make_response({'response':'unathorized access'})
+        return make_response({'Response':'unathorized access'})
 
 @app.route('/blog/login', methods=['POST'])
+@app.route('/blog/login/', methods=['POST'])
 def blog_login():
     '''login route will perform login and send cookies via flask-login library'''
     try:
@@ -260,7 +264,7 @@ def blog_login():
                 user = Users.query.filter_by(username=username,passwd=passwd).first()
                 if user:
                     login_user(user,remember=True,duration=cookie_duration)
-                    resp = make_response({'response':'logged in'})
+                    resp = make_response({'Response':'logged in'})
                     resp.mimetype = 'application/json'
                     session.permanent = True
                     session['_id'] = user.user_id
@@ -271,11 +275,12 @@ def blog_login():
                     resp.mimetype = 'application/json'
                     return resp
             else:
-                return make_response({'response':'required fields did not match(username,password)'})
+                return make_response({'Response':'required fields did not match(username,password)'})
         else:
             return make_response({'Response':'Already Logged in'})
 
 @app.route('/blog/admin', methods=['GET'])
+@app.route('/blog/admin/', methods=['GET'])
 def blog_admin_page():
     '''Tempo admin page'''
     if current_user.is_authenticated:
@@ -283,12 +288,13 @@ def blog_admin_page():
     return '<form style="text-align: center;" action="/blog/login" method="POST" style="line-height: 1.5;"><input style="font-size:calc(150px - 8vw);margin-top:35vh;" type="text" name="username" placeholder="Enter Name" required /><br><br><input type="password" name="passwd" placeholder="Enter Password" style="font-size:calc(150px - 8vw)" required><br><br><input style="font-size:calc(150px - 8vw)" type="submit" value="login"></form>'
 
 @app.route('/blog/logout', methods=["POST"])
+@app.route('/blog/logout/', methods=["POST"])
 def blog_logout():
     if current_user.is_authenticated:
         session.pop("_id",None)
         logout_user()
-        return make_response({'response':'logged out'})
-    return make_response({'response':'not logged in'})
+        return make_response({'Response':'logged out'})
+    return make_response({'Response':'not logged in'})
 
 if __name__ == "__main__":
     db.create_all()
