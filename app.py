@@ -158,6 +158,7 @@ def login_through_header():
         return False
 
 @app.route('/')
+@app.route('/blog/')
 @app.route('/blog')
 def blog_page():
     '''tempo blog page route'''
@@ -166,6 +167,7 @@ def blog_page():
         admin='(admin-login found)'
     return f"<div style='text-align:center;font-size:calc(100px - 6vw);'><h1>this is blog page</h1><br>{admin}<br><h3><br><br>see posts: <a href='/blog/posts'>/blog/posts</a><br>create a post: <a href='/blog/post'>/blog/post</a><br>admin login: <a href='/blog/admin'>/blog/admin</a></h3><div>"
 
+@app.route('/blog/posts/')
 @app.route('/blog/posts', methods=["GET"])
 def return_blog_posts():
     '''displaying all posts data from posts table'''
@@ -189,6 +191,7 @@ def return_blog_posts():
         resp.mimetype = 'application/json'
         return resp
 
+@app.route('/blog/posts/id=<int:id>/')
 @app.route('/blog/posts/id=<int:id>')
 def get_post_by_id(id):
     result=fetch_post_by_id(id)
@@ -204,6 +207,7 @@ def get_post_by_id(id):
         resp.mimetype = 'application/json'
         return resp
 
+@app.route('/blog/post/', methods=['POST'])
 @app.route('/blog/post', methods=['POST'])
 def upload_post():
     '''inserting data received from request form into posts table in db'''
@@ -230,6 +234,7 @@ def upload_post():
     else:
         return make_response({'response':'unathorized access'})
 
+@app.route('/blog/post/', methods=["GET"])
 @app.route('/blog/post', methods=["GET"])
 def upload_post_page():
     '''tempo route for uploading a new data post into db'''
@@ -238,6 +243,7 @@ def upload_post_page():
     else:
         return make_response({'response':'unathorized access'})
 
+@app.route('/blog/post/delete/')
 @app.route('/blog/post/delete', methods=["GET","POST"])
 def delete_all_posts():
     if current_user.is_authenticated:
@@ -245,6 +251,7 @@ def delete_all_posts():
     else:
         return make_response({'response':'unathorized access'})
 
+@app.route('/blog/login/')
 @app.route('/blog/login', methods=['POST'])
 def blog_login():
     '''login route will perform login and send cookies via flask-login library'''
@@ -275,6 +282,7 @@ def blog_login():
         else:
             return make_response({'Response':'Already Logged in'})
 
+@app.route('/blog/admin/')
 @app.route('/blog/admin', methods=['GET'])
 def blog_admin_page():
     '''Tempo admin page'''
@@ -282,6 +290,7 @@ def blog_admin_page():
         return '<form style="text-align: center;" action="/blog/logout" method="POST" style="line-height: 1.5;"><p style="font-size:calc(200px - 10vw); margin-top:35vh;">Logout:</p><input style="font-size:calc(200px - 10vw);" type="submit" value="logout"></form>'
     return '<form style="text-align: center;" action="/blog/login" method="POST" style="line-height: 1.5;"><input style="font-size:calc(150px - 8vw);margin-top:35vh;" type="text" name="username" placeholder="Enter Name" required /><br><br><input type="password" name="passwd" placeholder="Enter Password" style="font-size:calc(150px - 8vw)" required><br><br><input style="font-size:calc(150px - 8vw)" type="submit" value="login"></form>'
 
+@app.route('/blog/logout/')
 @app.route('/blog/logout', methods=["POST"])
 def blog_logout():
     if current_user.is_authenticated:
