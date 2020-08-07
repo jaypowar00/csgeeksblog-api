@@ -42,8 +42,7 @@ for admin previleges, must login for performing some adding or deleting posts op
 Will insert the Title, Author, Content, Description, Tags, Thumbnail_link data into posts Table!
 
 Required fields for creation of post:
-~ type -> form data
-- title
+type -> form data - title
 - author
 - content
 - description
