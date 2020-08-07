@@ -6,18 +6,14 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-flask = "*"
-flask-sqlalchemy = "*"
-psycopg2 = "*"
-gunicorn = "*"
-pprint = "*"
-requests = "*"
-request = "*"
-jsonify = "*"
-postgres = "*"
-make-response = "*"
 flask-login = "*"
 datetime = "*"
+sql = "*"
+gunicorn = "*"
+psycopg2 = "*"
+flask = "*"
+flask-sqlalchemy = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.8"
