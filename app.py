@@ -113,8 +113,8 @@ def get_blog_posts(orderby='created' ,order='desc',author=None,tag=None):
         conn.commit()
         cur.close()
         conn.close()
-        print("from function")
-        print(result)
+        # print("from function")
+        # print(result)
         return result
     except psycopg2.OperationalError:
         return 500,{'Server Error':'Database Error'}
@@ -188,8 +188,31 @@ def insert_post_to_database(title, content, description, tags, thumbnail, author
         # print('failed to connect')
         return False
 
+def update_post_by_id(id,title, content, description, tags, thumbnail, author):
+    '''actual implementation of updation of post'''
+    try:
+        if ENV == 'dev':
+            conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
+        else:
+            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+        try:
+            cur = conn.cursor()
+            query = sql.SQL('''UPDATE posts SET title=%s, content=%s, description=%s, tags=%s, thumbnail=%s, author=%s WHERE _id=%s''')
+            cur.execute(query, (title, content, description, tags, thumbnail, author,id))
+            conn.commit()
+            cur.close()
+            conn.close()
+            # print('done posting post')
+            return True
+        except:
+            # print('failed posting post')
+            return False
+    except:
+        # print('failed to connect')
+        return False
+
 def postadmindata(name,bio,mail,social):
-    '''tempo'''
+    '''tempo '''
     try:
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
@@ -230,6 +253,25 @@ def delete_all():
         conn.close()
         return make_response({'response':'No posts to delete'})
 
+def delete_by(id):
+    if ENV == 'dev':
+        conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
+    else:
+        conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+    cur = conn.cursor()
+    cur.execute('select count(*) from posts')
+    n = cur.fetchall()[0][0]
+    if n != 0:
+        cur.execute(f"DELETE FROM posts WHERE _id={id}")
+        conn.commit()
+        cur.close()
+        conn.close()
+        return make_response({"response":"The Post have been deleted!"})
+    else:
+        cur.close()
+        conn.close()
+        return make_response({'response':'No posts to delete'})
+
 def check_pass_hash(username,password):
     try:
         if ENV == 'dev':
@@ -248,7 +290,7 @@ def check_pass_hash(username,password):
         # print(result)
         for x in result:
             if x['username']==username and check_password_hash(x['passwd'],password):
-                print(x['user_id'])
+                # print(x['user_id'])
                 return x['user_id']
         return False
     except psycopg2.OperationalError:
@@ -259,10 +301,10 @@ def login_through_header():
     passwd='1234'
     u_id = check_pass_hash(username,passwd)
     if u_id:
-        print("hash true")
-    else:
-        print("hash false")
-    user = Users.query.filter_by(username=username,user_id=u_id).first()
+        # print("hash true")
+        user = Users.query.filter_by(username=username,user_id=u_id).first()
+    # else:
+        # print("hash false")
     if user:
         login_user(user,remember=True,duration=cookie_duration)
         return True
@@ -450,15 +492,58 @@ def upload_post():
                 else:
                     resp = make_response({'success':False,'result':'failed to upload post'})
                     resp.mimetype = 'application/json'
-                    resp.status_code = 507
+                    resp.status_code = 500
                     return resp
             else:
                 resp = make_response({'success':False,"result":"missing form data for 'title','content','author' in the request"})
                 resp.mimetype = 'application/json'
-                resp.status_code = 507
+                resp.status_code = 500
                 return resp
         else:
             return make_response({'success':False,'response':'unathorized access'})
+
+@app.route('/blog/update', methods=['POST'])
+def update_post():
+    '''inserting data received from request form into posts table in db'''
+    db.create_all()
+    id = request.args
+    if 'id' in id:
+        id = id['id']
+        header = ''
+        try:
+                header = request.headers['C_AUTH']
+        finally:
+            if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+                if 'title' in request.form and 'content' in request.form and 'author'  in request.form and 'thumbnail' in request.form and 'tags' in request.form :
+                    title = request.form['title']
+                    content = request.form['content']
+                    author = request.form['author']
+                    tags = request.form['tags'].split(",")
+                    description = None
+                    thumbnail = None
+                    if request.form['description'] != "" :
+                        description = request.form['description']
+                    if request.form['thumbnail'] != "" :
+                        thumbnail = request.form['thumbnail']
+                    r = update_post_by_id(id,title, content, description, tags, thumbnail, author)
+                    if r:
+                        resp = make_response({'success':True,'result':'post updated'})
+                        resp.mimetype = 'application/json'
+                        return resp
+                    else:
+                        resp = make_response({'success':False,'result':'failed to update post'})
+                        resp.mimetype = 'application/json'
+                        resp.status_code = 500
+                        return resp
+                else:
+                    resp = make_response({'success':False,"result":"missing form data for 'title','content','author' in the request"})
+                    resp.mimetype = 'application/json'
+                    resp.status_code = 500
+                    return resp
+            else:
+                return make_response({'success':False,'response':'unathorized access'})
+    else:
+        return make_response({'success':False,'response':'missing value of id'})
 
 @app.route('/blog/create', methods=["GET"])
 def upload_post_page():
@@ -476,14 +561,37 @@ def upload_post_page():
 @app.route('/blog/post/delete', methods=["GET","POST"])
 def delete_all_posts():
     db.create_all()
-    header = ''
-    try:
+    id = request.args
+    if 'id' in id:
+        id = id['id']
+        try:
+            id = float(id)
+            id = int(id)
+        except:
+            id = None
+        finally:
+            header = ''
+            try:
+                header = request.headers['C_AUTH']
+            finally:
+                if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+                    if id:
+                        return delete_by(id)
+                    else:
+                        return make_response({'success':False,'response':'invalid post id'})
+                    return delete_all()
+                else:
+                    return make_response({'success':False,'response':'unathorized access'})
+    else:
+        header = ''
+        try:
             header = request.headers['C_AUTH']
-    finally:
-        if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
-            return delete_all()
-        else:
-            return make_response({'response':'unathorized access'})
+        finally:
+            if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+                return delete_all()
+            else:
+                return make_response({'response':'unathorized access'})
+
 
 @app.route('/blog/login', methods=['POST'])
 def blog_login():
