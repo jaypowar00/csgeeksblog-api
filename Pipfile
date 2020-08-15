@@ -14,6 +14,7 @@ psycopg2 = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-cors = "*"
+flask-jwt-extended = "*"
 
 [requires]
 python_version = "3.8"
