@@ -1,48 +1,31 @@
-'''This is a web app (still in development)'''
-import json
-# import pprint
-# import requests
-import psycopg2
-from flask import Flask, request, redirect, url_for, make_response, session ,jsonify
+'''
+This is a custome API for Blogsites (still in development)
+(Don't rush and try to run it! observe the code and fillin your credentials for SQL database; I've tested this with only Postgresql)
+'''
+from flask import Flask, request, redirect, url_for, make_response, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
+import psycopg2
 from psycopg2 import sql
-from flask_login import LoginManager, login_required, login_user, logout_user, current_user, UserMixin
 import datetime
-from time import gmtime, strftime
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
-
-
-import functools
 from functools import wraps
-# from flask_jwt_extended import JWTManager, jwt_optional, fresh_jwt_required, jwt_required, create_access_token, jwt_refresh_token_required, create_refresh_token, get_jwt_identity, set_access_cookies, set_refresh_cookies, unset_jwt_cookies, decode_token
 import jwt
-
 
 cookie_duration = timedelta(days=3)
 app = Flask(__name__)
 CORS(app,expose_headers=['Access-Control-Allow-Origin'],supports_credentials=True)
-
-#############################################################################
-# app.config['SECRET_KEY']='newkey'
-# app.config['JWT_TOKEN_LOCATION'] = ['cookies']
-# app.config['JWT_COOKIE_SECURE'] = True
-# app.config['JWT_COOKIE_SAMESITE'] = None
-# # app.config['JWT_JSON_KEY'] = 'access-api-token'
-# # app.config['JWT_ACCESS_COOKIE_KEY'] = 'accessapitoken'
-# app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=3)
-# app.config['JWT_COOKIE_CSRF_PROTECT'] = False
-# app.config['JWT_CSRF_CHECK_FORM'] = False
-# jwt=JWTManager(app)
-#############################################################################
 app.permanent_session_lifetime = timedelta(days=3)
+
 app.config['SECRET_KEY']='mysecretkeyforcsgeeksblog?'
+
+# change this to 'dev' if u wish to test the code with your local database and running the app on local machine other wise make it 'prod'...
 ENV = 'prod'
 if ENV == 'dev':
-    app.debug = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:super@localhost/blogdata'
+    app.debug = True
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://nmxwgggmawwwoc:daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd@ec2-34-206-31-217.compute-1.amazonaws.com:5432/dc2g7b9o8p5for'
     app.debug = False
@@ -82,32 +65,15 @@ class Author(db.Model):
     mail = db.Column(db.Text())
     social = db.Column(db.ARRAY(db.Text()))
 
-    # def __init__(self,name,bio,mail,social):
-    #     self.name = name
-    #     self.bio = bio
-    #     self.mail = mail
-    #     self.social = social
-
-class Users(db.Model,UserMixin):
-    '''This is a class for Users table'''
-    __tablename__ = 'users'
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.Text())
-    email = db.Column(db.Text())
-    passwd = db.Column(db.Text())
-
-    def __init__(self, username, email, passwd):
-        self.username = username
-        self.email = email
-        self.passwd = passwd
-    def get_id(self):
-        return self.user_id
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-@login_manager.user_loader
-def load_user(user_id):
-    return Users.query.get(int(user_id))
+    def __init__(self, name, mail, password, rname, bio,public_id,social,admin):
+        self.name = name
+        self.mail = mail
+        self.password = password
+        self.rname = rname
+        self.bio = bio
+        self.public_id = public_id
+        self.social = social
+        self.admin = admin
 
 def get_searched_post(orderby='created' ,order='desc',author=None,tag=None,searchString=False):
     '''actual implementation of getting-fetching all blogs/posts from posts table filtered by search items'''
@@ -191,6 +157,7 @@ def get_tags_from_db():
         cur.execute("SELECT json_agg(tags) FROM posts;")
         result = cur.fetchall()[0][0]
         new=set()
+        # [[t1,t2],[t1]]
         for i in result:
             if type(i)==type(list()):
                 for ii in i:
@@ -305,7 +272,7 @@ def update_post_by_id(id,title, content, description, tags, thumbnail, author):
         print('failed to connect for update')
         return False
 
-def postadmindata(name,bio,mail,social):
+def postadmindata(name,rname,bio,password,admin,mail,social):
     '''tempo '''
     try:
         if ENV == 'dev':
@@ -314,8 +281,8 @@ def postadmindata(name,bio,mail,social):
             conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
         try:
             cur = conn.cursor()
-            query = sql.SQL('''insert into authors (name,bio,mail,social) values (%s,%s,%s,%s)''')
-            cur.execute(query, (name,bio,mail,social))
+            query = sql.SQL('''insert into authors (name,rname,bio,password,admin,mail,social) values (%s,%s,%s,%s,%s,%s,%s)''')
+            cur.execute(query, (name,rname,bio,password,admin,mail,social))
             conn.commit()
             cur.close()
             conn.close()
@@ -384,9 +351,7 @@ def check_pass_hash(username,password):
         else:
             conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
         cur = conn.cursor()
-        cur.execute("SELECT json_agg(users) FROM users")
-        # cur.execute("SELECT to_jsonb(array_agg(posts)) FROM posts")
-        # cur.execute("SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT _id,title, author) AS ColumnName (_id,title, author)))) FROM posts;")
+        cur.execute("SELECT json_agg(authors) FROM authors")
         result = cur.fetchall()[0][0]
         conn.commit()
         cur.close()
@@ -401,20 +366,6 @@ def check_pass_hash(username,password):
     except psycopg2.OperationalError:
         return 500,{'Server Error':'Database Error'}
 
-def login_through_header():
-    username='jay'
-    passwd='1234'
-    u_id = check_pass_hash(username,passwd)
-    if u_id:
-        # print("hash true")
-        user = Users.query.filter_by(username=username,user_id=u_id).first()
-    # else:
-        # print("hash false")
-    if user:
-        login_user(user,remember=True,duration=cookie_duration)
-        return True
-    else:
-        return False
 def token_required(func):
     @wraps(func)
     def decorated(*args,**kwargs):
@@ -437,6 +388,11 @@ def token_required(func):
     return decorated
 
 def token_optional(func):
+    '''
+    for optional jwt authentication
+    on authentication failure it returns {msg='<fail reason>',token=False,admin=False,and all the *args & **kwargs recieved by original wrapped route!}
+    success returns {msg='<authors_name>',token=True,admin=<Bool_value(if that author is set admin or not)>,*args,**kwargs}
+    '''
     @wraps(func)
     def decorated(*args,**kwargs):
         token = None
@@ -477,14 +433,14 @@ def blog_page(msg,token,admin):
     try:
             header = request.headers['C_AUTH']
     finally:
-        if token or current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
             admin='(admin-login found)'
         return f"<div style='text-align:center;font-size:calc(100px - 6vw);'><h1>this is blog page</h1><br>{admin}<br><h3><br><br>see posts: <a href='/blog/posts'>/blog/posts</a><br>create a post: <a href='/blog/create'>/blog/create</a><br>admin login: <a href='/blog/admin'>/blog/admin</a></h3><div>"
 
 @app.route('''/blog/posts''', methods=["GET"])
 @token_optional
 def return_blog_posts(msg,token,admin):
-    '''displaying all posts data from posts table'''
+    '''displaying all posts data from posts table as per request (queries acceptable)'''
     db.create_all()
     if token:
         if not admin:
@@ -493,6 +449,10 @@ def return_blog_posts(msg,token,admin):
     if in_query:
         searchString=''
         if 'search' in in_query:
+            '''
+            if searching is to be done in db for articles it will be done using 'search' query followed by SearchString
+            the search will be case incase sensitive!
+            '''
             searchData = in_query['search']
             searchItems = searchData.split(' ')
             contentSearch = ''
@@ -739,6 +699,9 @@ def return_blog_posts(msg,token,admin):
 
 @app.route('''/blog/post''')
 def get_post_by_id():
+    '''
+    gets the particular post in detail(same as /blog/posts but it will return the post of given id with its content!)
+    '''
     print('post')
     id = request.args
     if 'id' in id:
@@ -764,14 +727,17 @@ def get_post_by_id():
 @app.route('''/blog/create''', methods=['POST'])
 @token_optional
 def upload_post(msg,token,admin):
-    '''inserting data received from request form into posts table in db'''
+    '''
+    used for creating new article in database (in posts table)
+    can accepts data via FormData or Json(preference is for FormData if not will look for Json)
+    '''
     db.create_all()
     header = ''
     try:
-            header = request.headers['C_AUTH']
+        header = request.headers['C_AUTH']
     finally:
         print(request.data)
-        if token or current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
             if request.form and 'title' in request.form and 'content' in request.form and 'author'  in request.form and 'thumbnail' in request.form and 'tags' in request.form :
                 print('\n\nformdata found!\n\n')
                 title = request.form['title']
@@ -862,17 +828,21 @@ def upload_post(msg,token,admin):
 @app.route('''/blog/update''', methods=['PUT','POST'])
 @token_optional
 def update_post(msg,token,admin):
-    '''inserting data received from request form into posts table in db'''
+    '''
+    Used to update/modify the data (values) of article of given id(query param)
+    accepted FormData or Json (preference is given to FormData values if not present will lookout for Json)
+    only provide values for those attributes which are to be updated if provided attribute_name(like 'title') with no value then it will take it as empty(try to avoid such own errors)
+    '''
     db.create_all()
     id = request.args
     if 'id' in id:
         id = id['id']
         header = ''
         try:
-                header = request.headers['C_AUTH']
+            header = request.headers['C_AUTH']
         finally:
             req=request.get_json()
-            if token or current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+            if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
                 rtitle=''
                 rcontent=''
                 rauthor=msg if token and not admin else ''
@@ -982,20 +952,44 @@ def update_post(msg,token,admin):
         return make_response({'success':False,'response':'missing value of id'})
 
 @app.route('''/blog/create''', methods=["GET"])
-def upload_post_page():
-    '''tempo route for uploading a new data post into db'''
+@token_optional
+def upload_post_page(msg,token,admin):
+    '''
+    for creating new article from origin(direct) api site!
+    (also has option to delete all current articles)
+    (Yes its possible to do(not recommended though), if you don't want that functionality just remove this route or comment it out...)
+    '''
     db.create_all()
     header = ''
     try:
-            header = request.headers['C_AUTH']
+        header = request.headers['C_AUTH']
     finally:
-        if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
-            return '<br><br><br><br><br><hr><form style="text-align: center;line-height: 1.5;" action="/blog/create" method="POST"><p style="font-size:calc(130px - 8vw);">Create A Post</p><input style="font-size:calc(130px - 8vw);" type="text" name="title" placeholder="Enter Title" required /><br><input style="font-size:calc(130px - 8vw);" type="text" name="content" placeholder="Enter Content" required /><br><input type="text" name="author" placeholder="Enter Author" style="font-size:calc(130px - 8vw);" required><br><input type="text" name="description" placeholder="Enter Description" style="font-size:calc(130px - 8vw);"><br><input type="text" name="thumbnail" placeholder="Enter Link to thumnail" style="font-size:calc(130px - 8vw);"><br><br><input style="font-size:calc(130px - 8vw);" type="submit" value="Post"></form><hr><form style="text-align: center;line-height: 1.5;" action="/blog/post/delete" method="POST"><input style="font-size:calc(130px - 8vw);" type="submit" value="Delete all posts"></form><hr>'
+        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+            return '''
+            <br><br><br><br><br><hr>
+            <form style="text-align: center;line-height: 1.5;" action="/blog/create" method="POST">
+            <p style="font-size:calc(130px - 8vw);">Create A Post</p>
+            <input style="font-size:calc(130px - 8vw);" type="text" name="title" placeholder="Enter Title" required /><br>
+            <input style="font-size:calc(130px - 8vw);" type="text" name="content" placeholder="Enter Content" required /><br>
+            <input type="text" name="author" placeholder="Enter Author" style="font-size:calc(130px - 8vw);" required><br>
+            <input type="text" name="tags" placeholder="Enter Tags(seperated by commas,no spaces)" style="font-size:calc(130px - 8vw);" required><br>
+            <input type="text" name="description" placeholder="Enter Description" style="font-size:calc(130px - 8vw);"><br>
+            <input type="text" name="thumbnail" placeholder="Enter Link to thumnail" style="font-size:calc(130px - 8vw);"><br><br>
+            <input style="font-size:calc(130px - 8vw);" type="submit" value="Create Article">
+            </form><hr>
+            <form style="text-align: center;line-height: 1.5;" action="/blog/post/delete" method="POST">
+            <input style="font-size:calc(130px - 8vw);" type="submit" value="Delete all Articles">
+            </form><hr>
+            '''
         else:
             return make_response({'success':False,'response':'unauthorized access'})
 
 @app.route('''/blog/post/delete''', methods=["GET","POST"])
-def delete_all_posts():
+@token_optional
+def delete_all_posts(msg,token,admin):
+    '''
+    Used to delete all Articles or just to delete one article of which id is provided through query param
+    '''
     db.create_all()
     id = request.args
     if 'id' in id:
@@ -1010,7 +1004,7 @@ def delete_all_posts():
             try:
                 header = request.headers['C_AUTH']
             finally:
-                if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+                if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
                     if id:
                         return delete_by(id)
                     else:
@@ -1023,7 +1017,7 @@ def delete_all_posts():
         try:
             header = request.headers['C_AUTH']
         finally:
-            if current_user.is_authenticated or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+            if token or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
                 return delete_all()
             else:
                 return make_response({'response':'unauthorized access'})
@@ -1032,9 +1026,15 @@ def delete_all_posts():
 @app.route('''/blog/login''', methods=['GET','POST'])
 @token_optional
 def blog_login(msg,token,admin):
-    '''login route will perform login via flask-login library'''
+    '''
+    Login For authentication purpose!
+    This performs login authentication on normal security level...
+    accepts FormData or else Json (can also accepts token generated by previous login; then will just return that the user has already logged in[obviously ;-)]...)
+    returns JWT Tokens generation which expires after 1 day (can be changed in the code...)
+    use the returned jwt token as query param for /blog/create , /blog/update routes or for routes like where auth is required(observe the source code)
+    '''
     db.create_all()
-    if token:
+    if token or '_id' in session:
         return jsonify({'response':'already logged in','success':True,'already_logged_in':True,'author':msg})
     form = request.form
     jsn = request.get_json()
@@ -1054,7 +1054,8 @@ def blog_login(msg,token,admin):
         return jsonify({'response':'login failed(user not found!)','success':False})
     if check_password_hash(author.password,password):
         token= jwt.encode({'public_id':author.public_id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},app.config['SECRET_KEY'])
-
+        session.permanent = True
+        session['_id'] = author.auth_id
         return jsonify({'response':'Logged in','token':token.decode('UTF-8'),'success':True,'already_logged_in':False,'author':username})
 
     return jsonify({'response':'Failed to login','success':False})
@@ -1062,23 +1063,31 @@ def blog_login(msg,token,admin):
 @app.route('''/blog/login/check''')
 @token_optional
 def getdatafor(msg,token,admin):
+    '''
+    used for checking the token recieved after succeful login is still valid or not?
+    (can be helpful if want to check your token is still valid or not)
+    '''
     if token:
         return jsonify({'response':'Logged In!','success':True,'author':msg, 'admin':admin})
     return jsonify({'response':'Not Logged In!(ps:'+msg+')','success':False})
 
-
 @app.route('''/blog/admin''', methods=['GET'])
 @token_optional
 def blog_admin_page(msg,token,admin):
-    '''Tempo admin page'''
+    '''
+    This lets you login in yourself from Origin(Direct) Api site
+    (Though Direct Usage of routes is not recommeneded still could be better if want to confirm by checking out something)
+    '''
     db.create_all()
-    if current_user.is_authenticated or token:
+    if '_id' in session or token:
         return '<form style="text-align: center;" action="/blog/logout" method="POST" style="line-height: 1.5;"><p style="font-size:calc(200px - 10vw); margin-top:35vh;">Logout:</p><input style="font-size:calc(200px - 10vw);" type="submit" value="logout"></form>'
-    return '<form style="text-align: center;" action="/blog/login" method="POST" style="line-height: 1.5;"><input style="font-size:calc(150px - 8vw);margin-top:35vh;" type="text" name="username" placeholder="Enter Name" required /><br><br><input type="password" name="passwd" placeholder="Enter Password" style="font-size:calc(150px - 8vw)" required><br><br><input style="font-size:calc(150px - 8vw)" type="submit" value="login"></form>'
+    return '<form style="text-align: center;" action="/blog/login" method="POST" style="line-height: 1.5;"><input style="font-size:calc(150px - 8vw);margin-top:35vh;" type="text" name="username" placeholder="Enter Name" required /><br><br><input type="password" name="password" placeholder="Enter Password" style="font-size:calc(150px - 8vw)" required><br><br><input style="font-size:calc(150px - 8vw)" type="submit" value="login"></form>'
 
 @app.route('''/blog/author''', methods=['POST','GET'])
 def admin_info():
-    '''Tempo admin page'''
+    '''
+    Gives information of author of given name(query param)
+    '''
     db.create_all()
     name = request.args
     if 'name' in name:
@@ -1112,13 +1121,16 @@ def admin_info():
 
 @app.route('''/blog/logout''', methods=["POST"])
 def blog_logout():
+    '''
+    This will be useful only in direct usage of the api site!
+    If using it on cross-domain/cross-site then you just have to delete/clear the local where token is stored..
+    mostly recieved token will be stored in cookies and will be used (if present) for thereafter auth-required requests until it expires or user clicks on log out ater which you would have to clear that cookie(thats one way doing it though)
+    '''
     db.create_all()
-    if current_user.is_authenticated:
+    if '_id' in session:
         session.pop("_id",None)
-        logout_user()
         return make_response({'response':'logged out'})
     return make_response({'response':'not logged in'})
-    
 
 if __name__ == "__main__":
     db.create_all()
