@@ -311,13 +311,13 @@ def delete_all():
         conn.close()
         print('deleted all posts')
         if len(r)==0:
-            return make_response({"response":"No posts to delete!"})
-        return make_response({"response":"All Posts have been deleted!"})
+            return make_response({"success":False,"result":"No posts to delete!"})
+        return make_response({"success":True,"result":"All Posts have been deleted!"})
     else:
         cur.close()
         conn.close()
         print('no posts to delete(for delete all)')
-        return make_response({'response':'No posts to delete'})
+        return make_response({'success':False,'result':'No posts to delete'})
 
 def delete_by(id):
     if ENV == 'dev':
@@ -336,56 +336,42 @@ def delete_by(id):
         conn.close()
         print('post '+str(id)+' deleted')
         if len(r)==0:
-            return make_response({"response":"No such post to delete!"})
-        return make_response({"response":"The Post have been deleted!"})
+            return make_response({"success":False,"result":"No such post to delete!"})
+        return make_response({"success":True,"result":"The Post have been deleted!"})
     else:
         cur.close()
         conn.close()
         print('no post to delete(for delete post)')
-        return make_response({'response':'No posts to delete'})
+        return make_response({'success':False,'result':'No posts to delete'})
 
-def check_pass_hash(username,password):
-    try:
-        if ENV == 'dev':
-            conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
-        else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
-        cur = conn.cursor()
-        cur.execute("SELECT json_agg(authors) FROM authors")
-        result = cur.fetchall()[0][0]
-        conn.commit()
-        cur.close()
-        conn.close()
-        # print("from users:")
-        # print(result)
-        for x in result:
-            if x['username']==username and check_password_hash(x['passwd'],password):
-                # print(x['user_id'])
-                return x['user_id']
-        return False
-    except psycopg2.OperationalError:
-        return 500,{'Server Error':'Database Error'}
+class BlackListedTokenError(Exception):
+    '''
+    raise this Custom Error for indicating the Token is in the BlackList
+    '''
+    pass
 
-def token_required(func):
-    @wraps(func)
-    def decorated(*args,**kwargs):
-        token = None
+blackListedTokens = set()
 
-        if 'token' in request.args:
-            token=request.args['token']
-        if not token:
-            return jsonify({'response':'token missing'})
-        try:
-            data = jwt.decode(token,app.config['SECRET_KEY'])
-            current_user= Author.query.filter_by(public_id=data['public_id'])
-        except jwt.ExpiredSignatureError:
-            return jsonify({'response':'token has expired!','success':False})
-        except jwt.InvalidSignatureError:
-            return jsonify({'response':'token is Invalid!','success':False})
-        except jwt.DecodeError:
-            return jsonify({'response':'token is Invalid!','success':False})
-        return func(current_user,*args,**kwargs)
-    return decorated
+# def token_required(func):
+#     @wraps(func)
+#     def decorated(*args,**kwargs):
+#         token = None
+
+#         if 'token' in request.args:
+#             token=request.args['token']
+#         if not token:
+#             return jsonify({'response':'token missing'})
+#         try:
+#             data = jwt.decode(token,app.config['SECRET_KEY'])
+#             current_user= Author.query.filter_by(public_id=data['public_id'])
+#         except jwt.ExpiredSignatureError:
+#             return jsonify({'response':'token has expired!','success':False})
+#         except jwt.InvalidSignatureError:
+#             return jsonify({'response':'token is Invalid!','success':False})
+#         except jwt.DecodeError:
+#             return jsonify({'response':'token is Invalid!','success':False})
+#         return func(current_user,*args,**kwargs)
+#     return decorated
 
 def token_optional(func):
     '''
@@ -402,6 +388,8 @@ def token_optional(func):
         if not token:
             return func(msg='token is missing',token=False,admin=False,*args,**kwargs)
         try:
+            if token in blackListedTokens:
+                raise BlackListedTokenError('Reused Logged out Token')
             data = jwt.decode(token,app.config['SECRET_KEY'])
             author= Author.query.filter_by(public_id=data['public_id'])
             if author:
@@ -412,8 +400,11 @@ def token_optional(func):
             return func(msg='token is Invalid!',token=False,admin=False,*args,**kwargs)
         except jwt.DecodeError:
             return func(msg='token is Invalid!',token=False,admin=False,*args,**kwargs)
-        return func(msg=author.first().name if current_user else '',token=True,admin=author.first().admin,*args,**kwargs)
+        except BlackListedTokenError:
+            return func(msg='token is Invalid!',token=False,admin=False,*args,**kwargs)
+        return func(msg=author.first().name if author else '',token=True,admin=author.first().admin,*args,**kwargs)
     return decorated
+
 
 @app.route('''/''')
 @app.route('''/blog''')
@@ -1008,10 +999,10 @@ def delete_all_posts(msg,token,admin):
                     if id:
                         return delete_by(id)
                     else:
-                        return make_response({'success':False,'response':'invalid post id'})
+                        return make_response({'success':False,'result':'invalid post id'})
                     return delete_all()
                 else:
-                    return make_response({'success':False,'response':'unauthorized access'})
+                    return make_response({'success':False,'result':'unauthorized access'})
     else:
         header = ''
         try:
@@ -1020,7 +1011,7 @@ def delete_all_posts(msg,token,admin):
             if token or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
                 return delete_all()
             else:
-                return make_response({'response':'unauthorized access'})
+                return make_response({'success':True,'result':'unauthorized access'})
 
 
 @app.route('''/blog/login''', methods=['GET','POST'])
@@ -1054,6 +1045,8 @@ def blog_login(msg,token,admin):
         return jsonify({'response':'login failed(user not found!)','success':False})
     if check_password_hash(author.password,password):
         token= jwt.encode({'public_id':author.public_id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},app.config['SECRET_KEY'])
+        if token in blackListedTokens:
+            blackListedTokens.discard(token)
         session.permanent = True
         session['_id'] = author.auth_id
         return jsonify({'response':'Logged in','token':token.decode('UTF-8'),'success':True,'already_logged_in':False,'author':username})
@@ -1119,16 +1112,20 @@ def admin_info():
 #     data = postadmindata(name,bio,mail,social)
 #     return '<h1>post data</h1>'
 
-@app.route('''/blog/logout''', methods=["POST"])
-def blog_logout():
+@app.route('''/blog/logout''', methods=["GET","POST"])
+@token_optional
+def blog_logout(msg,token,admin):
     '''
     This will be useful only in direct usage of the api site!
     If using it on cross-domain/cross-site then you just have to delete/clear the local where token is stored..
     mostly recieved token will be stored in cookies and will be used (if present) for thereafter auth-required requests until it expires or user clicks on log out ater which you would have to clear that cookie(thats one way doing it though)
     '''
     db.create_all()
-    if '_id' in session:
+    if '_id' in session or token:
         session.pop("_id",None)
+        if token:
+            logedout_token=request.args['token']
+            blackListedTokens.add(logedout_token)
         return make_response({'response':'logged out'})
     return make_response({'response':'not logged in'})
 
