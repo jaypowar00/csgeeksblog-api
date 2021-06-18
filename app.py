@@ -875,19 +875,17 @@ def update_post(msg,token,admin):
                     rtags = request.form['tags'].split(",") if 'tags' in request.form and type(request.form['tags'])==str else rtags
                     print(rtags)
                     if 'description' in request.form:
-                        if request.form['description'] != "" :
-                            rdescription = request.form['description']
-                            print(rdescription)
-                        else:
-                            rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
-                            print(rdescription)
+                        rdescription = request.form['description']
+                        print(rdescription)
+                    else:
+                        rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
+                        print(rdescription)
                     if 'thumbnail' in request.form:
-                        if request.form['thumbnail'] != "" :
-                            rthumbnail = request.form['thumbnail']
-                            print(rthumbnail)
-                        else:
-                            rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
-                            print(rthumbnail)
+                        rthumbnail = request.form['thumbnail']
+                        print(rthumbnail)
+                    else:
+                        rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
+                        print(rthumbnail)
                     r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor)
                     if r:
                         resp = make_response({'success':True,'result':'post updated'})
@@ -909,19 +907,17 @@ def update_post(msg,token,admin):
                     rtags = req['tags'].split(",")  if 'tags' in req and type(req['tags'])==str else rtags
                     print(rtags)
                     if 'description' in req:
-                        if req['description'] != "" :
-                            rdescription = req['description']
-                            print(rdescription)
-                        else:
-                            rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
-                            print(rdescription)
+                        rdescription = req['description']
+                        print(rdescription)
+                    else:
+                        rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
+                        print(rdescription)
                     if 'thumbnail' in req:
-                        if req['thumbnail'] != "" :
-                            rthumbnail = req['thumbnail']
-                            print(rthumbnail)
-                        else:
-                            rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
-                            print(rthumbnail)
+                        rthumbnail = req['thumbnail']
+                        print(rthumbnail)
+                    else:
+                        rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
+                        print(rthumbnail)
                     r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor)
                     if r:
                         resp = make_response({'success':True,'result':'post updated'})
