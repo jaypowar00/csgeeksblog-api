@@ -44,13 +44,15 @@ class Posts(db.Model):
     description = db.Column(db.Text())
     thumbnail = db.Column(db.Text())
     created = db.Column(db.DateTime(timezone=True),server_default=func.now())
+    vlink = db.Column(db.Text())
 
-    def __init__(self, title, content, author, description=None,tags=None):
+    def __init__(self, title, content, author, description=None,tags=None,vlink=None):
         self.title = title
         self.content = content
         self.author = author
         self.desciption = description
         self.tags = tags
+        self.vlink = vlink
 
 class Author(db.Model):
     '''This is a class for Auther information'''
@@ -249,7 +251,7 @@ def insert_post_to_database(title, content, description, tags, thumbnail, author
         print('failed connecting to db for create')
         return False
 
-def update_post_by_id(id,title, content, description, tags, thumbnail, author):
+def update_post_by_id(id,title, content, description, tags, thumbnail, author, vlink):
     '''actual implementation of updation of post'''
     try:
         if ENV == 'dev':
@@ -258,8 +260,8 @@ def update_post_by_id(id,title, content, description, tags, thumbnail, author):
             conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
         try:
             cur = conn.cursor()
-            query = sql.SQL('''UPDATE posts SET title=%s, content=%s, description=%s, tags=%s, thumbnail=%s, author=%s WHERE _id=%s''')
-            cur.execute(query, (title, content, description, tags, thumbnail, author,id))
+            query = sql.SQL('''UPDATE posts SET title=%s, content=%s, description=%s, tags=%s, thumbnail=%s, author=%s, vlink=%s WHERE _id=%s''')
+            cur.execute(query, (title, content, description, tags, thumbnail, author, vlink, id))
             conn.commit()
             cur.close()
             conn.close()
@@ -840,6 +842,7 @@ def update_post(msg,token,admin):
                 rdescription=''
                 rtags=''
                 rthumbnail=''
+                rvlink=''
                 presult=fetch_post_by_id(id)
                 print(presult)
                 try:
@@ -863,6 +866,7 @@ def update_post(msg,token,admin):
                 rtags=presult['tags']
                 rauthor=presult['author']
                 rthumbnail=presult['thumbnail']
+                rvlink=presult['vlink']
 
                 if request.form and 'title' in request.form or 'content' in request.form or 'author'  in request.form or 'thumbnail' in request.form or 'tags' in request.form or 'description' in request.form:
                     print('formdata found for update')
@@ -874,19 +878,23 @@ def update_post(msg,token,admin):
                     print(rauthor)
                     rtags = request.form['tags'].split(",") if 'tags' in request.form and type(request.form['tags'])==str else rtags
                     print(rtags)
+                    rvlink = request.form['vlink'] if 'vlink' in request.form else rvlink
+                    print(rvlink)
                     if 'description' in request.form:
-                        rdescription = request.form['description']
-                        print(rdescription)
-                    else:
-                        rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
-                        print(rdescription)
+                        if request.form['description'] != "":
+                            rdescription = request.form['description']
+                            print(rdescription)
+                        else:
+                            rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
+                            print(rdescription)
                     if 'thumbnail' in request.form:
-                        rthumbnail = request.form['thumbnail']
-                        print(rthumbnail)
-                    else:
-                        rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
-                        print(rthumbnail)
-                    r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor)
+                        if request.form['thumbnail'] != "":
+                            rthumbnail = request.form['thumbnail']
+                            print(rthumbnail)
+                        else:
+                            rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
+                            print(rthumbnail)
+                    r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor, rvlink)
                     if r:
                         resp = make_response({'success':True,'result':'post updated'})
                         resp.mimetype = 'application/json'
@@ -906,19 +914,23 @@ def update_post(msg,token,admin):
                     print(rauthor)
                     rtags = req['tags'].split(",")  if 'tags' in req and type(req['tags'])==str else rtags
                     print(rtags)
+                    rvlink = req['vlink'] if 'vlink' in req else rvlink
+                    print(rvlink)
                     if 'description' in req:
-                        rdescription = req['description']
-                        print(rdescription)
-                    else:
-                        rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
-                        print(rdescription)
+                        if req['description'] != "":
+                            rdescription = req['description']
+                            print(rdescription)
+                        else:
+                            rdescription = rcontent[0:50] + '...' if len(rcontent) else ''
+                            print(rdescription)
                     if 'thumbnail' in req:
-                        rthumbnail = req['thumbnail']
-                        print(rthumbnail)
-                    else:
-                        rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
-                        print(rthumbnail)
-                    r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor)
+                        if req['thumbnail'] != "":
+                            rthumbnail = req['thumbnail']
+                            print(rthumbnail)
+                        else:
+                            rthumbnail = 'https://demo.plugins360.com/wp-content/uploads/2017/12/demo.png'
+                            print(rthumbnail)
+                    r = update_post_by_id(id,rtitle, rcontent, rdescription, rtags, rthumbnail, rauthor, rvlink)
                     if r:
                         resp = make_response({'success':True,'result':'post updated'})
                         resp.mimetype = 'application/json'
