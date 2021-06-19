@@ -1021,7 +1021,7 @@ def delete_all_posts(msg,token,admin):
             if token or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
                 return delete_all()
             else:
-                return make_response({'success':True,'result':'unauthorized access'})
+                return make_response({'success':False,'result':'unauthorized access'})
 
 
 @app.route('''/blog/login''', methods=['GET','POST'])
