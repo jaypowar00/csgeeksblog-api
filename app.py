@@ -66,8 +66,9 @@ class Author(db.Model):
     bio = db.Column(db.Text())
     mail = db.Column(db.Text())
     social = db.Column(db.ARRAY(db.Text()))
+    profile_photo = db.Column(db.Text())
 
-    def __init__(self, name, mail, password, rname, bio,public_id,social,admin):
+    def __init__(self, name, mail, password, rname, bio,public_id,social,admin,profile_photo):
         self.name = name
         self.mail = mail
         self.password = password
@@ -76,6 +77,7 @@ class Author(db.Model):
         self.public_id = public_id
         self.social = social
         self.admin = admin
+        self.profile_photo = profile_photo
 
 def get_searched_post(orderby='created' ,order='desc',author=None,tag=None,searchString=False):
     '''actual implementation of getting-fetching all blogs/posts from posts table filtered by search items'''
@@ -183,7 +185,7 @@ def getadmindata(name):
             conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
             # try:
         cur = conn.cursor()
-        cur.execute(f"SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT auth_id,name,rname,bio,mail,social) AS ColumnName (auth_id,name,rname,bio,mail,social)))) FROM authors where name = '{name}' ;")
+        cur.execute(f"SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT auth_id,name,rname,bio,mail,social,profile_photo) AS ColumnName (auth_id,name,rname,bio,mail,social,profile_photo)))) FROM authors where name = '{name}' ;")
         result = cur.fetchall()[0][0][0]
         print(result)
         new = dict()
