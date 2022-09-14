@@ -13,21 +13,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 from functools import wraps
 import jwt
+import os
 
 cookie_duration = timedelta(days=3)
 app = Flask(__name__)
 CORS(app,expose_headers=['Access-Control-Allow-Origin'],supports_credentials=True)
 app.permanent_session_lifetime = timedelta(days=3)
 
-app.config['SECRET_KEY']='mysecretkeyforcsgeeksblog?'
+app.config['SECRET_KEY']=os.getenv('BLOG_SECRETKEY', 'yoursecretkey')
 
 # change this to 'dev' if u wish to test the code with your local database and running the app on local machine other wise make it 'prod'...
-ENV = 'prod'
+ENV = os.getenv('BLOG_MODE', 'prod')
 if ENV == 'dev':
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:super@localhost/blogdata'
     app.debug = True
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://qgdtewglrmrdnr:b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25@ec2-34-195-69-10.compute-1.amazonaws.com/dfcosu73rbdb4c'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('BLOG_DBURI', 'postgresql://postgres:super@localhost/blogdata')
     app.debug = False
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -85,7 +86,7 @@ def get_searched_post(orderby='created' ,order='desc',author=None,tag=None,searc
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
             # try:
         cur = conn.cursor()
         # cur.execute("SELECT json_agg(posts) FROM posts")
@@ -122,7 +123,7 @@ def get_blog_posts(orderby='created' ,order='desc',author=None,tag=None):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
             # try:
         cur = conn.cursor()
         # cur.execute("SELECT json_agg(posts) FROM posts")
@@ -156,7 +157,7 @@ def get_tags_from_db():
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
         cur = conn.cursor()
         cur.execute("SELECT json_agg(tags) FROM posts;")
         result = cur.fetchall()[0][0]
@@ -182,7 +183,7 @@ def getadmindata(name):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
             # try:
         cur = conn.cursor()
         cur.execute(f"SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT auth_id,name,rname,bio,mail,social,profile_photo) AS ColumnName (auth_id,name,rname,bio,mail,social,profile_photo)))) FROM authors where name = '{name}' ;")
@@ -215,7 +216,7 @@ def fetch_post_by_id(id):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
         cur = conn.cursor()
         cur.execute(f"SELECT json_agg(posts) FROM posts where _id = {id}")
         # cur.execute("SELECT to_jsonb(array_agg(posts)) FROM posts")
@@ -236,7 +237,7 @@ def insert_post_to_database(title, content, description, tags, thumbnail, author
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
         try:
             cur = conn.cursor()
             query = sql.SQL('''insert into posts (title, content, description, tags, thumbnail, author) values (%s,%s,%s,%s,%s,%s)''')
@@ -259,7 +260,7 @@ def update_post_by_id(id,title, content, description, tags, thumbnail, author, v
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
         try:
             cur = conn.cursor()
             query = sql.SQL('''UPDATE posts SET title=%s, content=%s, description=%s, tags=%s, thumbnail=%s, author=%s, vlink=%s WHERE _id=%s''')
@@ -282,7 +283,7 @@ def postadmindata(name,rname,bio,password,admin,mail,social):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
         try:
             cur = conn.cursor()
             query = sql.SQL('''insert into authors (name,rname,bio,password,admin,mail,social) values (%s,%s,%s,%s,%s,%s,%s)''')
@@ -303,7 +304,7 @@ def delete_all():
     if ENV == 'dev':
         conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
     else:
-        conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+        conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
     cur = conn.cursor()
     cur.execute('select count(*) from posts')
     n = cur.fetchall()[0][0]
@@ -327,7 +328,7 @@ def delete_by(id):
     if ENV == 'dev':
         conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
     else:
-        conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
+        conn = psycopg2.connect(database=os.getenv("BLOG_DBNAME",''), user=os.getenv("BLOG_DBUSER",''), password=os.getenv("BLOG_DBPASS",''), host=os.getenv("BLOG_DBHOST",''), port=os.getenv("BLOG_DBPORT","5432"))
     cur = conn.cursor()
     cur.execute('select count(*) from posts')
     n = cur.fetchall()[0][0]
