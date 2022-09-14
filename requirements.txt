@@ -9,6 +9,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
 psycopg2==2.8.5
+PyJWT==1.4.0
 pytz==2020.1
 six==1.15.0
 sql==0.4.0
