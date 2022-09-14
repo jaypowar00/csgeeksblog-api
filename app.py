@@ -85,7 +85,7 @@ def get_searched_post(orderby='created' ,order='desc',author=None,tag=None,searc
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
             # try:
         cur = conn.cursor()
         # cur.execute("SELECT json_agg(posts) FROM posts")
@@ -122,7 +122,7 @@ def get_blog_posts(orderby='created' ,order='desc',author=None,tag=None):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
             # try:
         cur = conn.cursor()
         # cur.execute("SELECT json_agg(posts) FROM posts")
@@ -156,7 +156,7 @@ def get_tags_from_db():
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
         cur = conn.cursor()
         cur.execute("SELECT json_agg(tags) FROM posts;")
         result = cur.fetchall()[0][0]
@@ -182,7 +182,7 @@ def getadmindata(name):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
             # try:
         cur = conn.cursor()
         cur.execute(f"SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT auth_id,name,rname,bio,mail,social,profile_photo) AS ColumnName (auth_id,name,rname,bio,mail,social,profile_photo)))) FROM authors where name = '{name}' ;")
@@ -215,7 +215,7 @@ def fetch_post_by_id(id):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
         cur = conn.cursor()
         cur.execute(f"SELECT json_agg(posts) FROM posts where _id = {id}")
         # cur.execute("SELECT to_jsonb(array_agg(posts)) FROM posts")
@@ -236,7 +236,7 @@ def insert_post_to_database(title, content, description, tags, thumbnail, author
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
         try:
             cur = conn.cursor()
             query = sql.SQL('''insert into posts (title, content, description, tags, thumbnail, author) values (%s,%s,%s,%s,%s,%s)''')
@@ -259,7 +259,7 @@ def update_post_by_id(id,title, content, description, tags, thumbnail, author, v
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
         try:
             cur = conn.cursor()
             query = sql.SQL('''UPDATE posts SET title=%s, content=%s, description=%s, tags=%s, thumbnail=%s, author=%s, vlink=%s WHERE _id=%s''')
@@ -282,7 +282,7 @@ def postadmindata(name,rname,bio,password,admin,mail,social):
         if ENV == 'dev':
             conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
         else:
-            conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+            conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
         try:
             cur = conn.cursor()
             query = sql.SQL('''insert into authors (name,rname,bio,password,admin,mail,social) values (%s,%s,%s,%s,%s,%s,%s)''')
@@ -303,7 +303,7 @@ def delete_all():
     if ENV == 'dev':
         conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
     else:
-        conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+        conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
     cur = conn.cursor()
     cur.execute('select count(*) from posts')
     n = cur.fetchall()[0][0]
@@ -327,7 +327,7 @@ def delete_by(id):
     if ENV == 'dev':
         conn = psycopg2.connect(database="blogdata", user="postgres", password="super", host="localhost", port="5432")
     else:
-        conn = psycopg2.connect(database="dc2g7b9o8p5for", user="nmxwgggmawwwoc", password="daeaa787dea0c53a312eedf9b4601f7cff2973e603eec3e27c8fc782d133f7bd", host="ec2-34-206-31-217.compute-1.amazonaws.com", port="5432")
+        conn = psycopg2.connect(database="dfcosu73rbdb4c", user="qgdtewglrmrdnr", password="b96a371fb2f3429414e9481757f42e3ca63d4e59a6f78db1e5c26e16d3aafa25", host="ec2-34-195-69-10.compute-1.amazonaws.com", port="5432")
     cur = conn.cursor()
     cur.execute('select count(*) from posts')
     n = cur.fetchall()[0][0]
