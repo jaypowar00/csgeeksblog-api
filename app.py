@@ -166,11 +166,14 @@ def get_tags_from_db():
         result = cur.fetchall()[0][0]
         new=set()
         # [[t1,t2],[t1]]
-        for i in result:
-            if type(i)==type(list()):
-                for ii in i:
-                    new.add(ii)
-        result = list(new)
+        if result:
+            for i in result:
+                if type(i)==type(list()):
+                    for ii in i:
+                        new.add(ii)
+            result = list(new)
+        else:
+            result = []
         conn.commit()
         cur.close()
         conn.close()
