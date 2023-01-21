@@ -139,7 +139,10 @@ def get_blog_posts(orderby='created' ,order='desc',author=None,tag=None):
             cur.execute(f"SELECT json_agg(row_to_json((SELECT ColumnName FROM (SELECT _id, title, description, author, tags, thumbnail, created) AS ColumnName (_id, title, description, author, tags, thumbnail, created))) {'ORDER BY '+orderby+' '+order if orderby and order else False or 'ORDER BY '+orderby+' desc' if orderby else False or 'ORDER BY created '+order if order else False or 'ORDER BY created desc' }) FROM posts;")
         # cur.execute("SELECT json_agg(row_to_json(t) FROM (select _id,title,description,author,tags,thumbnail,created FROM posts) t);")
         result = cur.fetchall()[0][0]
-        result = list(filter(None, result))
+        if result:
+            result = list(filter(None, result))
+        else:
+            result = None
         conn.commit()
         cur.close()
         conn.close()
