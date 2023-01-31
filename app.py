@@ -435,7 +435,7 @@ def blog_page(msg,token,admin):
     try:
             header = request.headers['C_AUTH']
     finally:
-        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+        if token or '_id' in session:
             admin='(admin-login found)'
         return f"<div style='text-align:center;font-size:calc(100px - 6vw);'><h1>this is blog page</h1><br>{admin}<br><h3><br><br>see posts: <a href='/blog/posts'>/blog/posts</a><br>create a post: <a href='/blog/create'>/blog/create</a><br>admin login: <a href='/blog/admin'>/blog/admin</a></h3><div>"
 
@@ -739,7 +739,7 @@ def upload_post(msg,token,admin):
         header = request.headers['C_AUTH']
     finally:
         print(request.data)
-        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+        if token or '_id' in session:
             if request.form and 'title' in request.form and 'content' in request.form and 'author'  in request.form and 'thumbnail' in request.form and 'tags' in request.form :
                 print('\n\nformdata found!\n\n')
                 title = request.form['title']
@@ -844,7 +844,7 @@ def update_post(msg,token,admin):
             header = request.headers['C_AUTH']
         finally:
             req=request.get_json()
-            if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+            if token or '_id' in session:
                 rtitle=''
                 rcontent=''
                 rauthor=msg if token and not admin else ''
@@ -972,7 +972,7 @@ def upload_post_page(msg,token,admin):
     try:
         header = request.headers['C_AUTH']
     finally:
-        if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+        if token or '_id' in session:
             return '''
             <br><br><br><br><br><hr>
             <form style="text-align: center;line-height: 1.5;" action="/blog/create" method="POST">
@@ -1012,7 +1012,7 @@ def delete_all_posts(msg,token,admin):
             try:
                 header = request.headers['C_AUTH']
             finally:
-                if token or '_id' in session or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+                if token or '_id' in session:
                     if id:
                         return delete_by(id)
                     else:
@@ -1025,7 +1025,7 @@ def delete_all_posts(msg,token,admin):
         try:
             header = request.headers['C_AUTH']
         finally:
-            if token or header == '?Rkqj98_hNV77aR67MRQhXz6_WC7XApXdG8@' :
+            if token and admin:
                 return delete_all()
             else:
                 return make_response({'success':False,'result':'unauthorized access'})
