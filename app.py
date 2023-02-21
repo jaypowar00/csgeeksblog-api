@@ -770,7 +770,7 @@ def upload_post(msg,token,admin):
                 else:
                     resp = make_response({'success':False,'result':'failed to upload post'})
                     resp.mimetype = 'application/json'
-                    resp.status_code = 400
+                    # resp.status_code = 400
                     return resp
             elif request.data and request.json:
                 req = request.get_json()
@@ -811,18 +811,18 @@ def upload_post(msg,token,admin):
                         else:
                             resp = make_response({'success':False,'result':'failed to upload post'})
                             resp.mimetype = 'application/json'
-                            resp.status_code = 400
+                            # resp.status_code = 400
                             return resp
                 else:
                     print('no json')
                 resp = make_response({'success':True,"result":"json compability under devlopement..."})
                 resp.mimetype = 'application/json'
-                resp.status_code = 200
+                # resp.status_code = 200
                 return resp
             else:
                 resp = make_response({'success':False,"result":"missing form data for 'title','content','author','tags','description','thumbnail' in the request"})
                 resp.mimetype = 'application/json'
-                resp.status_code = 500
+                # resp.status_code = 500
                 return resp
         else:
             return make_response({'success':False,'response':'unauthorized access'})
@@ -911,7 +911,7 @@ def update_post(msg,token,admin):
                     else:
                         resp = make_response({'success':False,'result':'failed to update post'})
                         resp.mimetype = 'application/json'
-                        resp.status_code = 500
+                        # resp.status_code = 500
                         return resp
                 elif req and 'title' in req or 'content' in req or 'author'  in req or 'thumbnail' in req or 'tags' in req or 'description' in req:
                     print('json found for update')
@@ -947,12 +947,12 @@ def update_post(msg,token,admin):
                     else:
                         resp = make_response({'success':False,'result':'failed to update post'})
                         resp.mimetype = 'application/json'
-                        resp.status_code = 500
+                        # resp.status_code = 500
                         return resp
                 else:
                     resp = make_response({'success':False,"result":"missing form data for 'title','content','author' in the request"})
                     resp.mimetype = 'application/json'
-                    resp.status_code = 500
+                    # resp.status_code = 500
                     return resp
             else:
                 return make_response({'success':False,'response':'unauthorized access'})
